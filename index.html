@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydroponics Pro - เครื่องคำนวณปุ๋ย</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; background-color: #f8fafc; }
+        .card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .input-group input { transition: all 0.2s; }
+        .input-group input:focus { border-color: #10b981; ring: 2px; outline: none; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <header class="bg-gradient-to-r from-green-600 to-emerald-500 text-white py-10 px-4 text-center shadow-lg mb-8 relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-4xl font-bold mb-2">Hydroponics Pro</h1>
+            <p class="text-green-50 font-light max-w-md mx-auto">เครื่องมือช่วยคำนวณขนาดถังและปริมาณปุ๋ยที่ต้องเติม</p>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 space-y-8">
+        
+        <section class="card p-6 border-l-8 border-green-500">
+            <div class="flex items-center mb-6">
+                <div class="p-2 bg-green-100 rounded-lg mr-4 text-green-600 font-bold text-lg">01</div>
+                <h2 class="text-xl font-semibold text-gray-800">คำนวณปริมาตรน้ำในถัง</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="space-y-4 bg-gray-50 p-5 rounded-2xl">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">ถังทรงสี่เหลี่ยม (ซม.)</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500 block">กว้าง</label>
+                            <input type="number" id="rectWidth" placeholder="0" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 block">ยาว</label>
+                            <input type="number" id="rectLength" placeholder="0" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 block">น้ำสูง</label>
+                            <input type="number" id="rectHeight" placeholder="0" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
+                    </div>
+                    <button onclick="calcRectVolume()" class="w-full bg-green-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition">คำนวณหาลิตร</button>
+                    <div id="rectResult" class="text-center font-bold text-green-600 hidden text-lg"></div>
+                </div>
+
+                <div class="space-y-4 bg-gray-50 p-5 rounded-2xl">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">ถังทรงกลม (ซม.)</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500 block">เส้นผ่านศูนย์กลาง</label>
+                            <input type="number" id="circDiam" placeholder="0" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 block">น้ำสูง</label>
+                            <input type="number" id="circHeight" placeholder="0" class="w-full p-2 border rounded-lg text-sm">
+                        </div>
+                    </div>
+                    <button onclick="calcCircVolume()" class="w-full bg-green-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition">คำนวณหาลิตร</button>
+                    <div id="circResult" class="text-center font-bold text-green-600 hidden text-lg"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card p-6 border-l-8 border-blue-500">
+            <div class="flex items-center mb-6">
+                <div class="p-2 bg-blue-100 rounded-lg mr-4 text-blue-600 font-bold text-lg">02</div>
+                <h2 class="text-xl font-semibold text-gray-800">คำนวณหาปริมาณปุ๋ย</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
+                <div class="input-group">
+                    <label class="text-xs font-bold text-gray-400 block mb-1">EC ที่ต้องการ (µS/cm)</label>
+                    <input type="number" id="targetEc" class="w-full p-3 border rounded-xl bg-gray-50 text-blue-600 font-bold" placeholder="เช่น 1800">
+                </div>
+                <div class="input-group">
+                    <label class="text-xs font-bold text-gray-400 block mb-1">EC วัดได้ปัจจุบัน (µS/cm)</label>
+                    <input type="number" id="currentEc" class="w-full p-3 border rounded-xl bg-gray-50 text-orange-600 font-bold" placeholder="เช่น 400">
+                </div>
+                <div class="input-group">
+                    <label class="text-xs font-bold text-gray-400 block mb-1">น้ำในถัง (ลิตร)</label>
+                    <div class="relative">
+                        <input type="number" id="waterVolume" class="w-full p-3 border rounded-xl bg-gray-50 font-bold" placeholder="0">
+                        <button onclick="useLastVol()" class="absolute right-2 top-2 bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded text-[10px] transition">ใช้ค่าเดิม</button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="calculateFertilizer()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 shadow-lg shadow-blue-100 transition transform active:scale-95">
+                วิเคราะห์การเติมปุ๋ย
+            </button>
+
+            <div id="fertResult" class="mt-8 hidden animate-fade-in">
+                <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 shadow-inner">
+                    <h3 id="analysisMsg" class="text-center font-bold text-blue-800 mb-6 text-lg"></h3>
+                    <div class="flex justify-around items-center space-x-4">
+                        <div class="text-center flex-1">
+                            <div class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">เติมปุ๋ย A</div>
+                            <div class="bg-white py-4 rounded-2xl shadow-sm border border-blue-100">
+                                <span id="resA" class="text-4xl font-black text-blue-600">0</span>
+                                <span class="text-xs text-blue-400 font-bold block">ml (มิลลิลิตร)</span>
+                            </div>
+                        </div>
+                        <div class="text-center flex-1">
+                            <div class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">เติมปุ๋ย B</div>
+                            <div class="bg-white py-4 rounded-2xl shadow-sm border border-blue-100">
+                                <span id="resB" class="text-4xl font-black text-blue-600">0</span>
+                                <span class="text-xs text-blue-400 font-bold block">ml (มิลลิลิตร)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="dilutionTip" class="mt-6 text-center text-sm font-medium text-emerald-600 bg-white p-3 rounded-xl border border-emerald-100 hidden"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-12 text-center text-gray-400 text-xs">
+        <p>© 2024 Hydroponics Calculator Assistant</p>
+    </footer>
+
+    <script>
+        let lastCalculatedVolume = 0;
+
+        function calcRectVolume() {
+            const w = parseFloat(document.getElementById('rectWidth').value) || 0;
+            const l = parseFloat(document.getElementById('rectLength').value) || 0;
+            const h = parseFloat(document.getElementById('rectHeight').value) || 0;
+            const vol = (w * l * h) / 1000;
+            lastCalculatedVolume = vol;
+            const res = document.getElementById('rectResult');
+            res.innerText = vol.toLocaleString() + " ลิตร";
+            res.classList.remove('hidden');
+        }
+
+        function calcCircVolume() {
+            const d = parseFloat(document.getElementById('circDiam').value) || 0;
+            const h = parseFloat(document.getElementById('circHeight').value) || 0;
+            const vol = (Math.PI * Math.pow(d / 2, 2) * h) / 1000;
+            lastCalculatedVolume = vol;
+            const res = document.getElementById('circResult');
+            res.innerText = vol.toLocaleString() + " ลิตร";
+            res.classList.remove('hidden');
+        }
+
+        function useLastVol() {
+            if (lastCalculatedVolume > 0) {
+                document.getElementById('waterVolume').value = lastCalculatedVolume.toFixed(2);
+            }
+        }
+
+        function calculateFertilizer() {
+            const targetEc = parseFloat(document.getElementById('targetEc').value) || 0;
+            const currentEc = parseFloat(document.getElementById('currentEc').value) || 0;
+            const volume = parseFloat(document.getElementById('waterVolume').value) || 0;
+            const constant = 252.5205784;
+
+            if (volume <= 0) {
+                alert("กรุณาระบุปริมาณน้ำ");
+                return;
+            }
+
+            const fertSection = document.getElementById('fertResult');
+            const analysisMsg = document.getElementById('analysisMsg');
+            const dilutionTip = document.getElementById('dilutionTip');
+            
+            fertSection.classList.remove('hidden');
+            dilutionTip.classList.add('hidden');
+
+            if (targetEc > currentEc) {
+                const ml = ((targetEc - currentEc) * volume) / constant;
+                
+                analysisMsg.innerText = "ผลวิเคราะห์: ค่าปุ๋ยน้อยกว่าที่กำหนด";
+                document.getElementById('resA').innerText = ml.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+                document.getElementById('resB').innerText = ml.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1});
+            } else if (targetEc < currentEc) {
+                const waterToAdd = (volume * currentEc / targetEc) - volume;
+                analysisMsg.innerText = "ผลวิเคราะห์: ค่าปุ๋ยเข้มข้นเกินไป";
+                document.getElementById('resA').innerText = "0";
+                document.getElementById('resB').innerText = "0";
+                dilutionTip.innerText = `คำแนะนำ: ควรเติมน้ำเปล่าเพิ่มอีกประมาณ ${waterToAdd.toFixed(1)} ลิตร`;
+                dilutionTip.classList.remove('hidden');
+            } else {
+                analysisMsg.innerText = "ผลวิเคราะห์: ค่าปุ๋ยพอดีแล้ว";
+                document.getElementById('resA').innerText = "0";
+                document.getElementById('resB').innerText = "0";
+            }
+
+            fertSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
